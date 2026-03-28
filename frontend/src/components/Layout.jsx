@@ -33,6 +33,7 @@ const Layout = () => {
         <nav className="flex-1 pt-4">
           <SidebarItem to="/" icon={LayoutDashboard} label="Dashboard" />
           <SidebarItem to="/clients" icon={Users} label="Clients" />
+          <SidebarItem to="/tax-rates" icon={Percent} label="Tax Rates" />
           <SidebarItem to="/invoices" icon={FileText} label="Invoices" />
           <SidebarItem to="/settings" icon={Settings} label="Settings" />
         </nav>

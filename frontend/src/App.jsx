@@ -28,14 +28,22 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <index element={<Dashboard />} />
             <Route index element={<Dashboard />} />
-            <Route path="clients" element={<div>Clients Page (TBD)</div>} />
-            <Route path="invoices" element={<div>Invoices Page (TBD)</div>} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="tax-rates" element={<TaxRates />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route path="invoices/new" element={<InvoiceForm />} />
+            <Route path="invoices/:id" element={<InvoiceForm />} />
             <Route path="settings" element={<div>Settings Page (TBD)</div>} />
           </Route>
         </Routes>
       </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
+/Router>
     </AuthProvider>
   );
 }

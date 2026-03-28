@@ -38,6 +38,7 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
 
 class InvoiceSerializer(serializers.ModelSerializer):
     items = InvoiceItemSerializer(many=True, required=False)
+    client_name = serializers.CharField(source='client.name', read_only=True)
 
     class Meta:
         model = Invoice
