@@ -33,9 +33,23 @@ INSTALLED_APPS = [
     # Third-party apps
     'rest_framework',
     'corsheaders',
+    'django_q',
     # Local apps
     'core',
 ]
+
+# Django Q2 Configuration
+Q_CLUSTER = {
+    'name': 'FlowBillQueue',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'label': 'Django Q',
+    'orm': 'default' # Use Django DB as broker
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

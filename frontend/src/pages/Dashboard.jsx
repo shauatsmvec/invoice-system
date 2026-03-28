@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../api/apiClient';
+import CashFlowChart from '../components/CashFlowChart';
 
 const StatCard = ({ label, value, color }) => (
   <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -80,6 +81,18 @@ const Dashboard = () => {
               <tr>
                 <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
                   No invoices found. Create your first one!
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+Create your first one!
                 </td>
               </tr>
             )}

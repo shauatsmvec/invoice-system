@@ -34,7 +34,8 @@ function App() {
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/new" element={<InvoiceForm />} />
             <Route path="invoices/:id" element={<InvoiceForm />} />
-            <Route path="settings" element={<div>Settings Page (TBD)</div>} />
+            <Route path="recurring" element={<RecurringTemplates />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </Router>

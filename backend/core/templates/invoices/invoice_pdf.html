@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Invoice {{ invoice.invoice_number }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.5;
+            margin: 0;
+            padding: 40px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .business-info h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #000;
+        }
+        .invoice-title {
+            text-align: right;
+        }
+        .invoice-title h2 {
+            margin: 0;
+            font-size: 32px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .details-container {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .details-container td {
+            vertical-align: top;
+            width: 50%;
+        }
+        .section-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        table.items th {
+            background: #f9f9f9;
+            text-align: left;
+            padding: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 14px;
+        }
+        table.items td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+        }
+        .totals {
+            float: right;
+            width: 300px;
+        }
+        .totals table {
+            width: 100%;
+        }
+        .totals td {
+            padding: 5px 0;
+            text-align: right;
+        }
+        .totals .grand-total {
+            font-size: 18px;
+            font-weight: bold;
+            border-top: 2px solid #eee;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 100px;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="business-info">
+            <h1>{{ profile.business_name }}</h1>
+            <p>{{ profile.tagline|default:"" }}</p>
+            <p>
+                {{ profile.address_line1 }}<br>
+                {{ profile.city }}, {{ profile.state }} {{ profile.postal_code }}<br>
+                {{ profile.email }}
+            </p>
+        </div>
+        <div class="invoice-title">
+            <h2>Invoice</h2>
+            <p>#{{ invoice.invoice_number }}</p>
+            <p>Date: {{ invoice.issue_date }}</p>
+            <p><strong>Due Date: {{ invoice.due_date }}</strong></p>
+        </div>
+    </div>
+
+    <table class="details-container">
+        <tr>
+            <td>
+                <div class="section-title">Bill To</div>
+                <strong>{{ invoice.client.name }}</strong><br>
+                {{ invoice.client.address_line1|default:"" }}<br>
+                {{ invoice.client.city|default:"" }}, {{ invoice.client.state|default:"" }} {{ invoice.client.postal_code|default:"" }}<br>
+                {{ invoice.client.email }}
+            </td>
+        </tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Tax</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in invoice.items.all %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ invoice.currency }} {{ item.unit_price }}</td>
+                <td>{{ item.tax_rate_name_snapshot|default:"-" }}</td>
+                <td>{{ invoice.currency }} {{ item.line_total }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <table>
+            <tr>
+                <td>Subtotal</td>
+                <td>{{ invoice.currency }} {{ invoice.subtotal }}</td>
+            </tr>
+            {% if invoice.total_tax > 0 %}
+            <tr>
+                <td>Tax</td>
+                <td>{{ invoice.currency }} {{ invoice.total_tax }}</td>
+            </tr>
+            {% endif %}
+            {% if invoice.discount_amount > 0 %}
+            <tr>
+                <td>Discount</td>
+                <td>-{{ invoice.currency }} {{ invoice.discount_amount }}</td>
+            </tr>
+            {% endif %}
+            <tr class="grand-total">
+                <td>Total</td>
+                <td>{{ invoice.currency }} {{ invoice.total }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="clear: both;"></div>
+
+    {% if invoice.notes %}
+    <div style="margin-top: 40px;">
+        <div class="section-title">Notes</div>
+        <p style="font-size: 14px;">{{ invoice.notes|linebreaksbr }}</p>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        {{ profile.default_terms|default:"Thank you for your business!"|linebreaksbr }}
+    </div>
+</body>
+</html>

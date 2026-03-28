@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigate, Outlet, Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Settings, LogOut, Percent, RefreshCw } from 'lucide-react';
 
 const SidebarItem = ({ to, icon: Icon, label }) => (
   <Link 
@@ -35,6 +35,7 @@ const Layout = () => {
           <SidebarItem to="/clients" icon={Users} label="Clients" />
           <SidebarItem to="/tax-rates" icon={Percent} label="Tax Rates" />
           <SidebarItem to="/invoices" icon={FileText} label="Invoices" />
+          <SidebarItem to="/recurring" icon={RefreshCw} label="Recurring" />
           <SidebarItem to="/settings" icon={Settings} label="Settings" />
         </nav>
 

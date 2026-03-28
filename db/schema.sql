@@ -199,3 +199,63 @@ CREATE TABLE public.recurring_templates (
     terms TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ENABLE RLS ON ALL TABLES
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tax_rates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoice_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.credit_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoice_activity ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.recurring_templates ENABLE ROW LEVEL SECURITY;
+
+-- POLICIES
+
+-- users: users can only see their own record
+CREATE POLICY "Users can view own record" ON public.users FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own record" ON public.users FOR UPDATE USING (auth.uid() = id);
+
+-- business_profiles: users can only see/edit their own profile
+CREATE POLICY "Users can view own profile" ON public.business_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own profile" ON public.business_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own profile" ON public.business_profiles FOR UPDATE USING (auth.uid() = user_id);
+
+-- tax_rates
+CREATE POLICY "Users can view own tax rates" ON public.tax_rates FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own tax rates" ON public.tax_rates FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own tax rates" ON public.tax_rates FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own tax rates" ON public.tax_rates FOR DELETE USING (auth.uid() = user_id);
+
+-- clients
+CREATE POLICY "Users can view own clients" ON public.clients FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own clients" ON public.clients FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own clients" ON public.clients FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own clients" ON public.clients FOR DELETE USING (auth.uid() = user_id);
+
+-- invoices
+CREATE POLICY "Users can view own invoices" ON public.invoices FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own invoices" ON public.invoices FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own invoices" ON public.invoices FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own invoices" ON public.invoices FOR DELETE USING (auth.uid() = user_id);
+
+-- invoice_items (checked via invoice relationship)
+CREATE POLICY "Users can view own invoice items" ON public.invoice_items FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.invoices WHERE id = invoice_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users can insert own invoice items" ON public.invoice_items FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM public.invoices WHERE id = invoice_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users can update own invoice items" ON public.invoice_items FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.invoices WHERE id = invoice_id AND user_id = auth.uid())
+);
+CREATE POLICY "Users can delete own invoice items" ON public.invoice_items FOR DELETE USING (
+  EXISTS (SELECT 1 FROM public.invoices WHERE id = invoice_id AND user_id = auth.uid())
+);
+
+-- payments
+CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own payments" ON public.payments FOR INSERT WITH CHECK (auth.uid() = user_id);

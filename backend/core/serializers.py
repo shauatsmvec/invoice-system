@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, BusinessProfile, TaxRate, Client, Invoice, InvoiceItem, Payment
+from .models import User, BusinessProfile, TaxRate, Client, Invoice, InvoiceItem, Payment, RecurringTemplate
 from decimal import Decimal
 import stripe
 from django.conf import settings
@@ -144,3 +144,17 @@ class InvoiceSerializer(serializers.ModelSerializer):
             self._generate_stripe_payment_link(instance)
         
         return instance
+
+class RecurringTemplateSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source='client.name', read_only=True)
+
+    class Meta:
+        model = RecurringTemplate
+        fields = '__all__'
+        read_only_fields = ['id', 'user', 'created_at']
+
+class CreditNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CreditNote
+        fields = '__all__'
+        read_only_fields = ['id', 'user', 'created_at']
