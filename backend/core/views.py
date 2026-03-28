@@ -19,7 +19,18 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
         return BusinessProfile.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
+        # Check if profile already exists
+        if BusinessProfile.objects.filter(user=self.request.user).exists():
+            return 
         serializer.save(user=self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        profile = BusinessProfile.objects.filter(user=request.user).first()
+        if not profile:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(profile)
+        return Response(serializer.data)
 
 class TaxRateViewSet(viewsets.ModelViewSet):
     serializer_class = TaxRateSerializer

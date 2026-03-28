@@ -4,6 +4,13 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
+import SignUp from './pages/SignUp';
+import Clients from './pages/Clients';
+import TaxRates from './pages/TaxRates';
+import Invoices from './pages/Invoices';
+import InvoiceForm from './pages/InvoiceForm';
+import RecurringTemplates from './pages/RecurringTemplates';
+import Settings from './pages/Settings';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -20,6 +27,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route 
             path="/" 
             element={
@@ -39,12 +47,6 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </AuthProvider>
-  );
-}
-
-export default App;
-/Router>
     </AuthProvider>
   );
 }

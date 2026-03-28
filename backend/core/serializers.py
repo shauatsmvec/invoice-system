@@ -1,15 +1,15 @@
 from rest_framework import serializers
-from .models import User, BusinessProfile, TaxRate, Client, Invoice, InvoiceItem, Payment, RecurringTemplate
+from .models import User, BusinessProfile, TaxRate, Client, Invoice, InvoiceItem, Payment, RecurringTemplate, CreditNote
 from decimal import Decimal
-import stripe
+import razorpay
 from django.conf import settings
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'full_name', 'onboarding_complete', 'stripe_customer_id', 'created_at']
+        fields = ['id', 'email', 'full_name', 'onboarding_complete', 'razorpay_customer_id', 'created_at']
         read_only_fields = ['id', 'created_at']
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
@@ -43,7 +43,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = '__all__'
-        read_only_fields = ['id', 'user', 'subtotal', 'total_tax', 'discount_amount', 'total', 'amount_paid', 'balance_due', 'portal_token', 'portal_token_expires_at', 'stripe_payment_intent_id', 'stripe_payment_link_url', 'sent_at', 'viewed_at', 'paid_at', 'voided_at', 'reminder_count', 'last_reminder_sent_at', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'subtotal', 'total_tax', 'discount_amount', 'total', 'amount_paid', 'balance_due', 'portal_token', 'portal_token_expires_at', 'razorpay_payment_link_id', 'razorpay_payment_link_url', 'sent_at', 'viewed_at', 'paid_at', 'voided_at', 'reminder_count', 'last_reminder_sent_at', 'created_at', 'updated_at']
 
     def _create_items(self, invoice, items_data):
         subtotal = Decimal('0.00')
@@ -100,24 +100,43 @@ class InvoiceSerializer(serializers.ModelSerializer):
         invoice.balance_due = invoice.total - invoice.amount_paid
         invoice.save()
 
-    def _generate_stripe_payment_link(self, invoice):
-        if invoice.total <= 0 or not settings.STRIPE_SECRET_KEY or settings.STRIPE_SECRET_KEY.startswith('sk_test_...'):
+    def _generate_razorpay_payment_link(self, invoice):
+        if invoice.total <= 0 or not settings.RAZORPAY_KEY_ID or settings.RAZORPAY_KEY_ID.startswith('rzp_test_replace_me'):
             return
 
         try:
-            product = stripe.Product.create(name=f"Invoice {invoice.invoice_number}")
-            price = stripe.Price.create(
-                product=product.id,
-                unit_amount=int(invoice.total * 100),
-                currency=invoice.currency.lower(),
-            )
-            payment_link = stripe.PaymentLink.create(
-                line_items=[{"price": price.id, "quantity": 1}],
-            )
-            invoice.stripe_payment_link_url = payment_link.url
+            # Amount in smallest unit (paise for INR)
+            amount_in_subunits = int(invoice.total * 100)
+            
+            data = {
+                "amount": amount_in_subunits,
+                "currency": invoice.currency,
+                "accept_partial": False,
+                "description": f"Payment for Invoice {invoice.invoice_number}",
+                "customer": {
+                    "name": invoice.client.name,
+                    "email": invoice.client.email,
+                    "contact": invoice.client.phone or ""
+                },
+                "notify": {
+                    "sms": False,
+                    "email": True
+                },
+                "reminder_enable": True,
+                "notes": {
+                    "invoice_id": str(invoice.id),
+                    "invoice_number": invoice.invoice_number
+                }
+            }
+            
+            payment_link = razorpay_client.payment_link.create(data)
+            
+            invoice.razorpay_payment_link_id = payment_link['id']
+            invoice.razorpay_payment_link_url = payment_link['short_url']
             invoice.save()
         except Exception as e:
-            # Real-world apps should log this exception
+            # Log the error in a real-world scenario
+            print(f"RAZORPAY LINK ERROR: {str(e)}")
             pass
 
     def create(self, validated_data):
@@ -126,7 +145,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         
         subtotal, total_tax = self._create_items(invoice, items_data)
         self._calculate_totals(invoice, subtotal, total_tax)
-        self._generate_stripe_payment_link(invoice)
+        self._generate_razorpay_payment_link(invoice)
         
         return invoice
 
@@ -141,7 +160,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             instance.items.all().delete()
             subtotal, total_tax = self._create_items(instance, items_data)
             self._calculate_totals(instance, subtotal, total_tax)
-            self._generate_stripe_payment_link(instance)
+            self._generate_razorpay_payment_link(instance)
         
         return instance
 

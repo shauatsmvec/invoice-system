@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../api/apiClient';
-import { Plus, Pencil, Trash2, X, Percent } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Percent, Zap, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TaxRateForm = ({ taxRate, onClose, onSave }) => {
   const [formData, setFormData] = useState(taxRate || {
+    id: null,
     name: '',
     rate: 0.1,
     type: 'gst',
@@ -31,30 +33,42 @@ const TaxRateForm = ({ taxRate, onClose, onSave }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-          <h3 className="text-lg font-bold text-slate-900">
-            {taxRate ? 'Edit Tax Rate' : 'Add Tax Rate'}
-          </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50"
+    >
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100"
+      >
+        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div>
+            <h3 className="text-xl font-black text-slate-900 leading-none mb-1">
+              {taxRate ? 'Update Tax' : 'New Tax Rate'}
+            </h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Global Configuration</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-white rounded-full text-slate-400 hover:text-slate-900 transition-all shadow-sm">
             <X size={20} />
           </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tax Name *</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Tax Identifier *</label>
             <input 
               required
-              placeholder="e.g. GST, VAT, Sales Tax"
+              placeholder="e.g. GST, VAT"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-900 outline-none"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none transition-all font-bold"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Rate (as decimal) *</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Percentage Rate (Decimal) *</label>
             <div className="relative">
               <input 
                 type="number"
@@ -62,20 +76,21 @@ const TaxRateForm = ({ taxRate, onClose, onSave }) => {
                 required
                 value={formData.rate}
                 onChange={(e) => setFormData({...formData, rate: e.target.value})}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-900 outline-none pr-12"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none transition-all font-bold pr-16"
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 text-xs">
-                {(formData.rate * 100).toFixed(1)}%
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <span className="text-slate-900 font-black text-sm">
+                  {(formData.rate * 100).toFixed(1)}%
+                </span>
               </div>
             </div>
-            <p className="text-[10px] text-slate-400 mt-1">Example: 0.1 for 10%, 0.05 for 5%</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Tax Type</label>
+            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Category</label>
             <select 
               value={formData.type}
               onChange={(e) => setFormData({...formData, type: e.target.value})}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md outline-none bg-white"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 outline-none transition-all font-bold"
             >
               <option value="gst">GST</option>
               <option value="vat">VAT</option>
@@ -83,36 +98,32 @@ const TaxRateForm = ({ taxRate, onClose, onSave }) => {
               <option value="custom">Custom</option>
             </select>
           </div>
-          <div className="flex items-center gap-2 pt-2">
-            <input 
-              type="checkbox"
-              id="is_default"
-              checked={formData.is_default}
-              onChange={(e) => setFormData({...formData, is_default: e.target.checked})}
-              className="w-4 h-4 accent-slate-900"
-            />
-            <label htmlFor="is_default" className="text-sm text-slate-700">Set as default for new items</label>
+          <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer" onClick={() => setFormData({...formData, is_default: !formData.is_default})}>
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${formData.is_default ? 'bg-slate-900 text-white shadow-sm' : 'bg-white border border-slate-200'}`}>
+              {formData.is_default && <Check size={14} strokeWidth={4} />}
+            </div>
+            <span className="text-sm font-bold text-slate-700">Set as default for new invoices</span>
           </div>
 
           <div className="pt-4 flex justify-end gap-3">
             <button 
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-100 rounded-md transition-colors"
+              className="px-6 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-slate-900 text-white font-medium rounded-md hover:bg-slate-800 transition-colors disabled:opacity-50"
+              className="px-10 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all hover:shadow-lg active:scale-95 disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Save Rate'}
+              {loading ? 'Processing...' : 'Save Rate'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
@@ -148,75 +159,95 @@ const TaxRates = () => {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-8"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Tax Rates</h1>
-          <p className="text-slate-500">Manage reusable tax settings for your invoices</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Tax Configuration</h1>
+          <p className="text-slate-500 font-medium mt-1">Global tax rates for your regional compliance</p>
         </div>
         <button 
           onClick={() => { setEditingRate(null); setIsFormOpen(true); }}
-          className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-md font-medium hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all hover:shadow-lg active:scale-95 shadow-md"
         >
-          <Plus size={18} />
+          <Plus size={20} />
           <span>Add Tax Rate</span>
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full py-12 text-center text-slate-400">Loading rates...</div>
-        ) : taxRates.map((rate) => (
-          <div key={rate.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-            <div>
-              <div className="flex items-start justify-between mb-4">
-                <div className="bg-slate-100 p-2 rounded-lg text-slate-600">
-                  <Percent size={20} />
+        <AnimatePresence mode="popLayout">
+          {loading ? (
+            <div className="col-span-full py-20 text-center"><div className="animate-spin h-8 w-8 border-b-2 border-slate-900 mx-auto rounded-full"></div></div>
+          ) : taxRates.length === 0 ? (
+            <div className="col-span-full py-20 text-center text-slate-400 font-medium italic bg-white rounded-3xl border border-dashed border-slate-200">No tax rates configured yet.</div>
+          ) : taxRates.map((rate, idx) => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.2, delay: idx * 0.05 }}
+              key={rate.id} 
+              className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 group hover:shadow-md hover:border-slate-200 transition-all relative overflow-hidden"
+            >
+              <div className="flex items-start justify-between mb-6">
+                <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
+                  <Percent size={24} />
                 </div>
                 {rate.is_default && (
-                  <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                  <span className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.1em] border border-emerald-100 shadow-sm">
                     Default
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-bold text-slate-900">{rate.name}</h3>
-              <p className="text-3xl font-black text-slate-900 mt-2">
-                {(parseFloat(rate.rate) * 100).toFixed(1)}%
-              </p>
-              <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest">{rate.type}</p>
-            </div>
-            
-            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-50">
-              <button 
-                onClick={() => { setEditingRate(rate); setIsFormOpen(true); }}
-                className="text-slate-400 hover:text-slate-900 transition-colors"
-              >
-                <Pencil size={18} />
-              </button>
-              <button 
-                onClick={() => handleDelete(rate.id)}
-                className="text-slate-400 hover:text-red-600 transition-colors"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          </div>
-        ))}
-        {!loading && taxRates.length === 0 && (
-          <div className="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl py-12 text-center text-slate-500">
-            No tax rates configured yet.
-          </div>
-        )}
+
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">{rate.name}</h3>
+                  <div className="flex items-center gap-2 mt-4">
+                    <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                      {(parseFloat(rate.rate) * 100).toFixed(1)}%
+                    </span>
+                    <div className="bg-slate-50 px-2 py-1 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-slate-100">
+                      {rate.type}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-50 flex justify-end gap-2">
+                  <button 
+                    onClick={() => { setEditingRate(rate); setIsFormOpen(true); }}
+                    className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all"
+                  >
+                    <Pencil size={18} />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(rate.id)}
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
-      {isFormOpen && (
-        <TaxRateForm 
-          taxRate={editingRate} 
-          onClose={() => setIsFormOpen(false)} 
-          onSave={() => { setIsFormOpen(false); fetchRates(); }} 
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {isFormOpen && (
+          <TaxRateForm 
+            taxRate={editingRate} 
+            onClose={() => setIsFormOpen(false)} 
+            onSave={() => { setIsFormOpen(false); fetchRates(); }} 
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

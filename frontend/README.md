@@ -1,16 +1,36 @@
-# React + Vite
+# FlowBill Frontend (React SPA)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A premium, animated user interface built with React 19, Tailwind CSS 4, and Framer Motion.
 
-Currently, two official plugins are available:
+## 🚀 Setup Instructions
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. **Installation**:
+   ```powershell
+   npm install
+   ```
 
-## React Compiler
+2. **Environment Variables**:
+   Create a `.env` file in this folder:
+   ```text
+   VITE_SUPABASE_URL=https://[REF].supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_API_URL=http://localhost:8000/api/v1
+   ```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+3. **Development Server**:
+   ```powershell
+   npm run dev
+   ```
 
-## Expanding the ESLint configuration
+## 💎 Design Highlights
+- **Framer Motion**: Smooth page transitions and interactive lists.
+- **Recharts**: High-performance cash flow data visualization.
+- **Lucide React**: Consistent, high-quality iconography.
+- **Tailwind 4**: Utility-first styling with modern CSS features.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 📁 Page Structure
+- `/Dashboard`: Metrics and Cash Flow chart.
+- `/Invoices`: List and management actions (PDF, Email, Void).
+- `/Clients`: Customer CRM and details.
+- `/Recurring`: Automated billing schedules.
+- `/Settings`: Business branding and profile.

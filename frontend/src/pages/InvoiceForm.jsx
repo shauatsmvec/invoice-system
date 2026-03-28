@@ -329,7 +329,7 @@ const InvoiceForm = () => {
                 <option value="voided">Voided</option>
               </select>
               <p className="mt-3 text-[10px] text-slate-400 leading-relaxed">
-                Tip: Status will automatically update to 'Paid' if a Stripe payment is detected.
+                Tip: Status will automatically update to 'Paid' if a Razorpay payment is detected.
               </p>
             </div>
           </div>

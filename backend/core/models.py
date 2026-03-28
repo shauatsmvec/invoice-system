@@ -20,7 +20,7 @@ class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     onboarding_complete = models.BooleanField(default=False)
-    stripe_customer_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_customer_id = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
@@ -136,8 +136,8 @@ class Invoice(models.Model):
     pdf_url = models.URLField(null=True, blank=True)
     portal_token = models.CharField(max_length=255, unique=True, null=True, blank=True)
     portal_token_expires_at = models.DateTimeField(null=True, blank=True)
-    stripe_payment_intent_id = models.CharField(max_length=255, null=True, blank=True)
-    stripe_payment_link_url = models.URLField(null=True, blank=True)
+    razorpay_payment_link_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_payment_link_url = models.URLField(null=True, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
     viewed_at = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
@@ -171,7 +171,7 @@ class InvoiceItem(models.Model):
 
 class Payment(models.Model):
     METHOD_CHOICES = [
-        ('stripe', 'Stripe'),
+        ('razorpay', 'Razorpay'),
         ('bank_transfer', 'Bank Transfer'),
         ('cash', 'Cash'),
         ('cheque', 'Cheque'),
@@ -184,8 +184,8 @@ class Payment(models.Model):
     currency = models.CharField(max_length=3)
     payment_date = models.DateField()
     method = models.CharField(max_length=50, choices=METHOD_CHOICES, null=True, blank=True)
-    stripe_payment_intent_id = models.CharField(max_length=255, null=True, blank=True)
-    stripe_charge_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_payment_id = models.CharField(max_length=255, null=True, blank=True)
+    razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
     reference = models.CharField(max_length=255, null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

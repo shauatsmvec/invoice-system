@@ -28,12 +28,12 @@ const Settings = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await apiClient.get('/business-profile/');
-        if (response.data.length > 0) {
-          setProfile(response.data[0]);
-        }
+        const response = await apiClient.get('/business-profile/me/');
+        setProfile(response.data);
       } catch (error) {
-        console.error('Error fetching profile:', error);
+        if (error.response?.status !== 404) {
+          console.error('Error fetching profile:', error);
+        }
       } finally {
         setLoading(false);
       }
@@ -54,7 +54,8 @@ const Settings = () => {
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Failed to save settings.');
+      const errorMsg = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      alert(`Failed to save settings: ${errorMsg}`);
     } finally {
       setSaving(false);
     }

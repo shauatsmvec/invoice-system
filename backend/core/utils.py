@@ -1,10 +1,11 @@
 from django.template.loader import render_to_string
-from weasyprint import HTML
+from xhtml2pdf import pisa
+from io import BytesIO
 from .models import BusinessProfile
 
 def generate_invoice_pdf(invoice):
     """
-    Generates a PDF from an invoice instance using WeasyPrint.
+    Generates a PDF from an invoice instance using xhtml2pdf.
     """
     profile = BusinessProfile.objects.filter(user=invoice.user).first()
     
@@ -13,7 +14,9 @@ def generate_invoice_pdf(invoice):
         'profile': profile
     })
     
-    # Generate PDF
-    pdf_file = HTML(string=html_string).write_pdf()
+    result = BytesIO()
+    pdf = pisa.pisaDocument(BytesIO(html_string.encode("UTF-8")), result)
     
-    return pdf_file
+    if not pdf.err:
+        return result.getvalue()
+    return None
