@@ -8,7 +8,7 @@ CREATE TABLE public.users (
     email TEXT NOT NULL,
     full_name TEXT NOT NULL,
     onboarding_complete BOOLEAN DEFAULT false,
-    stripe_customer_id TEXT,
+    razorpay_customer_id TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -98,8 +98,8 @@ CREATE TABLE public.invoices (
     pdf_url TEXT,
     portal_token TEXT UNIQUE,
     portal_token_expires_at TIMESTAMPTZ,
-    stripe_payment_intent_id TEXT,
-    stripe_payment_link_url TEXT,
+    razorpay_payment_link_id TEXT,
+    razorpay_payment_link_url TEXT,
     sent_at TIMESTAMPTZ,
     viewed_at TIMESTAMPTZ,
     paid_at TIMESTAMPTZ,
@@ -138,9 +138,9 @@ CREATE TABLE public.payments (
     amount DECIMAL(12,2) NOT NULL,
     currency TEXT NOT NULL,
     payment_date DATE NOT NULL,
-    method TEXT CHECK (method IN ('stripe', 'bank_transfer', 'cash', 'cheque', 'other')),
-    stripe_payment_intent_id TEXT,
-    stripe_charge_id TEXT,
+    method TEXT CHECK (method IN ('razorpay', 'bank_transfer', 'cash', 'cheque', 'other')),
+    razorpay_payment_id TEXT,
+    razorpay_signature TEXT,
     reference TEXT,
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
