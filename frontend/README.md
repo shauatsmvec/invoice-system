@@ -28,9 +28,14 @@ A premium, animated user interface built with React 19, Tailwind CSS 4, and Fram
 - **Lucide React**: Consistent, high-quality iconography.
 - **Tailwind 4**: Utility-first styling with modern CSS features.
 
-## 📁 Page Structure
-- `/Dashboard`: Metrics and Cash Flow chart.
-- `/Invoices`: List and management actions (PDF, Email, Void).
-- `/Clients`: Customer CRM and details.
-- `/Recurring`: Automated billing schedules.
-- `/Settings`: Business branding and profile.
+## 🚀 Deployment (Render)
+
+1. Create a **Static Site** on Render.
+2. Connect your GitHub repository.
+3. **Build Command**: `npm run build`
+4. **Publish Directory**: `dist`
+5. **Environment Variables**: Add `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_API_URL` (the URL of your deployed backend).
+6. **Redirects**: Go to **Redirects/Rewrites** and add:
+   - Source: `/*`
+   - Destination: `/index.html`
+   - Action: `Rewrite`

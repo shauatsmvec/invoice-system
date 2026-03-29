@@ -20,7 +20,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-43+o6gr_c0_pd!nwg#cg8qm7x$h$m6d&s@nw@)ofxoku==n)$n')
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = ['*'] # Restrict in production
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=['http://localhost:5173', 'http://127.0.0.1:5173'])
 
 # Application definition
 INSTALLED_APPS = [
@@ -52,8 +53,9 @@ Q_CLUSTER = {
 }
 
 MIDDLEWARE = [
-    'django.middleware.gzip.GZipMiddleware', # Optimization: Compress responses
+    'django.middleware.gzip.GZipMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Added for Render static files
     'corsheaders.middleware.CorsMiddleware', # Added CORS middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -112,6 +114,9 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Settings

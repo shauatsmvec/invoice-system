@@ -45,7 +45,13 @@ To enable **Auto-Reminders** and **Recurring Invoices**, run this in a separate 
 python manage.py qcluster
 ```
 
-## 📄 Key Features
-- **Custom Auth**: Decodes Supabase JWTs via official SDK.
-- **PDF Utils**: Uses `xhtml2pdf` for server-side generation.
-- **Tasks**: Django Q2 processes billing schedules automatically.
+## 🚀 Deployment (Render)
+
+1. Create a **Web Service** on Render.
+2. Connect your GitHub repository.
+3. **Build Command**: `./build.sh`
+4. **Start Command**: `gunicorn flowbill_api.wsgi`
+5. **Environment Variables**: Add all keys from your `.env` to the Render Dashboard.
+   - Set `DEBUG` to `False`.
+   - Add `ALLOWED_HOSTS` (e.g., `your-app.onrender.com`).
+   - Add `CSRF_TRUSTED_ORIGINS` (e.g., `https://your-frontend.onrender.com`).
