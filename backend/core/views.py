@@ -57,7 +57,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Invoice.objects.filter(user=self.request.user)
+        # Optimization: select_related('client') prevents extra DB hits for client_name
+        return Invoice.objects.filter(user=self.request.user).select_related('client')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -118,7 +119,8 @@ class RecurringTemplateViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return RecurringTemplate.objects.filter(user=self.request.user)
+        # Optimization: select_related('client')
+        return RecurringTemplate.objects.filter(user=self.request.user).select_related('client')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

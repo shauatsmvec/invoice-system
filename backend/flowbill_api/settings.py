@@ -52,6 +52,7 @@ Q_CLUSTER = {
 }
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware', # Optimization: Compress responses
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware', # Added CORS middleware
     'django.contrib.sessions.middleware.SessionMiddleware',

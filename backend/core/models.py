@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 class UserManager(BaseUserManager):
     def create_user(self, email, id=None, password=None, **extra_fields):
@@ -15,12 +15,26 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-class User(AbstractBaseUser):
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, password=password, **extra_fields)
+
+class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, db_index=True)
     full_name = models.CharField(max_length=255)
     onboarding_complete = models.BooleanField(default=False)
     razorpay_customer_id = models.CharField(max_length=255, null=True, blank=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
@@ -33,7 +47,7 @@ class User(AbstractBaseUser):
 
 class BusinessProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='business_profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='business_profile', db_index=True)
     business_name = models.CharField(max_length=255)
     tagline = models.CharField(max_length=255, null=True, blank=True)
     address_line1 = models.CharField(max_length=255, null=True, blank=True)
@@ -65,7 +79,7 @@ class TaxRate(models.Model):
         ('custom', 'Custom'),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tax_rates')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tax_rates', db_index=True)
     name = models.CharField(max_length=255)
     rate = models.DecimalField(max_digits=5, decimal_places=4)
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
@@ -78,9 +92,9 @@ class TaxRate(models.Model):
 
 class Client(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients')
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='clients', db_index=True)
+    name = models.CharField(max_length=255, db_index=True)
+    email = models.EmailField(db_index=True)
     phone = models.CharField(max_length=50, null=True, blank=True)
     address_line1 = models.CharField(max_length=255, null=True, blank=True)
     address_line2 = models.CharField(max_length=255, null=True, blank=True)
@@ -92,7 +106,7 @@ class Client(models.Model):
     notes = models.TextField(null=True, blank=True)
     late_payment_count = models.IntegerField(default=0)
     avg_days_to_pay = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
-    is_archived = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -116,13 +130,13 @@ class Invoice(models.Model):
         ('fixed', 'Fixed'),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invoices')
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='invoices')
-    invoice_number = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invoices', db_index=True)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name='invoices', db_index=True)
+    invoice_number = models.CharField(max_length=100, db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True, blank=True, db_index=True)
     currency = models.CharField(max_length=3, default='USD')
-    issue_date = models.DateField()
-    due_date = models.DateField()
+    issue_date = models.DateField(db_index=True)
+    due_date = models.DateField(db_index=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_tax = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     discount_type = models.CharField(max_length=20, choices=DISCOUNT_CHOICES, null=True, blank=True)
@@ -153,7 +167,7 @@ class Invoice(models.Model):
 
 class InvoiceItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items')
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='items', db_index=True)
     description = models.TextField()
     quantity = models.DecimalField(max_digits=10, decimal_places=3, default=1)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2)
@@ -178,11 +192,11 @@ class Payment(models.Model):
         ('other', 'Other'),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments', db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=3)
-    payment_date = models.DateField()
+    payment_date = models.DateField(db_index=True)
     method = models.CharField(max_length=50, choices=METHOD_CHOICES, null=True, blank=True)
     razorpay_payment_id = models.CharField(max_length=255, null=True, blank=True)
     razorpay_signature = models.CharField(max_length=255, null=True, blank=True)
@@ -195,8 +209,8 @@ class Payment(models.Model):
 
 class CreditNote(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name='credit_note')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    invoice = models.OneToOneField(Invoice, on_delete=models.CASCADE, related_name='credit_note', db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     credit_note_number = models.CharField(max_length=100)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     reason = models.TextField(null=True, blank=True)
@@ -209,8 +223,8 @@ class CreditNote(models.Model):
 class Reminder(models.Model):
     TYPE_CHOICES = [('auto', 'Auto'), ('manual', 'Manual')]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='reminders')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='reminders', db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     reminder_type = models.CharField(max_length=20, choices=TYPE_CHOICES, null=True, blank=True)
     days_overdue = models.IntegerField()
     email_sent_to = models.EmailField()
@@ -221,7 +235,7 @@ class Reminder(models.Model):
 
 class InvoiceActivity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='activities')
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='activities', db_index=True)
     event_type = models.CharField(max_length=100)
     description = models.TextField()
     metadata = models.JSONField(null=True, blank=True)
@@ -239,14 +253,14 @@ class RecurringTemplate(models.Model):
         ('annually', 'Annually'),
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, db_index=True)
     name = models.CharField(max_length=255)
     frequency = models.CharField(max_length=50, choices=FREQ_CHOICES, null=True, blank=True)
-    next_generate_date = models.DateField()
+    next_generate_date = models.DateField(db_index=True)
     auto_send = models.BooleanField(default=False)
     due_days = models.IntegerField(default=30)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     items = models.JSONField()
     notes = models.TextField(null=True, blank=True)
     terms = models.TextField(null=True, blank=True)
